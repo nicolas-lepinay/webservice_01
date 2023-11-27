@@ -13,7 +13,7 @@ Une documentation Postman est disponible [sur ce lien](https://documenter.getpos
 – Création de film,\
 – Mise à jour de films,\
 – Suppression de film,\
-– Récupération de films par id ou par genre,\
+– Recherche de films par id, par genre ou par mot-clé,\
 – Récupération de genres,\
 – Système de pagination,\
 – Upload d'images pour un film.
