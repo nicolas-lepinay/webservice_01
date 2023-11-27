@@ -1,21 +1,22 @@
 const mongoose = require("mongoose");
 const Movie = require("../models/Movie");
+const Genre = require("../models/Genre");
 
 // * GET A MOVIE *
 module.exports.findOne = async (req, res) => {
     try {
         const movie = await Movie.findById(req.params.id);
-         // Si aucun film n'a été trouvé
+         // If no movie was found:
          if (!movie) {
             return res.status(404).json({success: false, error: { code: 404, message: "Aucun film correspondant n'a été trouvé."}});
         }
         res.status(200).json({success: true, result: movie});
     } catch (err) {
-         // Si l'erreur est due à un mauvais format d'ID :
+         // If error is due to bad ID format:
          if (err instanceof mongoose.Error.CastError) {
             return res.status(400).json({success: false, error: { code: 400, message: "L'identifiant saisi est invalide."}});
         }
-        // Autres erreurs serveur
+        // Other server errors:
         return res.status(500).json({success: false, error: { code: 500, message: err}});
     }
 }
@@ -23,10 +24,62 @@ module.exports.findOne = async (req, res) => {
 // * GET ALL MOVIES *
 module.exports.findAll = async (req, res) => {
     try {
-        const movies = await Movie.find();
-        res.status(200).json({success: true, result: movies});
+        // 1️⃣ Pagination
+        const page = parseInt(req.query.page) || 1;
+        const limit = parseInt(req.query.limit) || 5;
+        const startIndex = (page - 1) * limit;
+
+        // 2️⃣ Search by keyword
+        const keyword = req.query.keyword;
+        let query = {};
+
+        if (keyword) {
+            query = {
+                $or: [
+                    { name: { $regex: keyword, $options: 'i' } },
+                    { description: { $regex: keyword, $options: 'i' } }
+                ]
+            };
+        }
+
+        // 3️⃣ Search by genre name
+        const genreName = req.query.genre;
+        if (genreName) {
+            const genre = await Genre.findOne({ name: { $regex: genreName, $options: 'i'  }});
+            if (genre) {
+                query.categoryId = genre._id.toString();
+            } else {
+                return res.status(404).json({success: false, error: { code: 404, message: "Aucun genre correspondant n'a été trouvé."}});
+            }
+        }
+
+        const totalMovies = await Movie.countDocuments(query);
+        const movies = await Movie.find(query).limit(limit).skip(startIndex);
+        res.status(200).json({         
+            success: true,
+            result: movies,
+            total: totalMovies,
+            totalPages: Math.ceil(totalMovies / limit),
+            currentPage: page,
+            limit,
+        });
     } catch (err) {
-        res.status(404).json(err);
+        res.status(404).json({success: false, error: { code: 404, message: err}});
+    }
+}
+
+// * GET MOVIES BY GENRE *
+module.exports.findByGenre = async (req, res) => {
+    try {
+        const categoryId = req.params.id;
+        const movies = await Movie.find({ categoryId: categoryId });
+
+        res.status(200).json({
+            success: true,
+            result: movies
+        });
+    } catch (err) {
+        res.status(404).json({ success: false, error: err.message });
     }
 }
 
@@ -40,7 +93,7 @@ module.exports.create = async (req, res) => {
         if (err.name === 'ValidationError') {
             return res.status(422).json({success: false, error: { code: 422, message: err.message}});
         }
-        // Pour les autres types d'erreurs
+        // For other error types:
         return res.status(500).json({success: false, error: { code: 500, message: err}});
     }   
 }
@@ -76,6 +129,23 @@ module.exports.delete = async (req, res) => {
         if (err instanceof mongoose.Error.CastError) {
             return res.status(422).json({success: false, error: { code: 422, message: err.message}});
         }
+        return res.status(500).json({success: false, error: { code: 500, message: err}});
+    }
+}
+
+// * UPLOAD AN IMAGE FOR A MOVIE *
+module.exports.uploadImage = async (req, res) => {
+    try {
+        const movie = await Movie.findById(req.params.id);
+        if (!movie) {
+            return res.status(404).json({success: false, error: { code: 500, message: "Le film n'a pas pu être trouvé."}});
+        }
+
+        movie.image = req.file.path; // Update movie's image's path
+        await movie.save();
+
+        res.status(200).json({ success: true, result: movie });
+    } catch (err) {
         return res.status(500).json({success: false, error: { code: 500, message: err}});
     }
 }

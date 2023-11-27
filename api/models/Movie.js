@@ -23,6 +23,14 @@ const MovieSchema = new mongoose.Schema({
             min: 0,
             max: 5,
         },
+        categoryId: {
+            type: String,
+            required: true
+        },
+        image: {
+            type: String,
+            required: false,
+        },
     }, { timestamps: true } // Pour ajouter des champs 'createdAt' et 'updatedAt' mis à jour automatiquement par Mongo
 );
 
