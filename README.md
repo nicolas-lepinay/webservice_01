@@ -20,4 +20,3 @@ Une documentation Postman est disponible [sur ce lien](https://documenter.getpos
 
 # Equipe
 Nicolas LEPINAY\
-Injin KIM
