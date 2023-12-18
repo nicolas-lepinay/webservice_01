@@ -3,6 +3,8 @@ const router = require("express").Router();
 const movieController = require("../controllers/movieController");
 const myMulter = require("../services/upload");
 
+const { authenticate, ensureAdmin } = require('../middlewares/middleware');
+
 // GET A MOVIE
 router.get("/:id", movieController.findOne);    
 
@@ -10,13 +12,13 @@ router.get("/:id", movieController.findOne);
 router.get("/", movieController.findAll);  
 
 // CREATE A MOVIE
-router.post("/", movieController.create);  
+router.post("/", authenticate, ensureAdmin, movieController.create);  
 
 // UPDATE A MOVIE
-router.put("/:id", movieController.update);   
+router.put("/:id", authenticate, ensureAdmin, movieController.update);   
 
 // DELETE A MOVIE
-router.delete("/:id", movieController.delete);       
+router.delete("/:id", authenticate, ensureAdmin, movieController.delete);       
 
 // UPLOAD AN IMAGE FOR A MOVIE
 router.post("/:id/upload", myMulter.upload.single("file"), movieController.uploadImage);   
