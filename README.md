@@ -17,6 +17,7 @@ Une documentation Postman est disponible [sur ce lien](https://documenter.getpos
 – Récupération de genres,\
 – Système de pagination,\
 – Upload d'images pour un film.
+– Authentification.
 
 # Equipe
 Nicolas LEPINAY\
