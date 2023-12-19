@@ -81,7 +81,7 @@ exports.refreshToken = async (req, res) => {
             accessToken: newAccessToken,
             accessTokenExpiresAt: new Date(Date.now() + 60 * 60 * 1000), // Expiration dans 60 minutes
             refreshToken: newRefreshToken,
-            refreshTokenExpiresAt: new Date(Date.now() + 24 * 60 * 60 * 1000) // Expiration dans 24 heures
+            refreshTokenExpiresAt: new Date(Date.now() + 120 * 60 * 1000) // Expiration dans 120 minutes
         });
     } catch (error) {
         if (error.name === 'JsonWebTokenError') {
